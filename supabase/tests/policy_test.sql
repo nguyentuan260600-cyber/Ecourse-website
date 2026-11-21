@@ -2,9 +2,36 @@
 -- Run with: npm run test:db  (PGlite, no Postgres install needed)
 
 -- ---------- fixtures for the tests ------------------------------------
+-- The dev seed has no courses, so the tests create their own (rolled into this file only).
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'student.a@example.dev'),
-  ('00000000-0000-0000-0000-00000000000b', 'student.b@example.dev');
+  ('00000000-0000-0000-0000-00000000000b', 'student.b@example.dev'),
+  (md5('ks:i-nam')::uuid, 'instructor.nam@example.dev'),
+  (md5('ks:i-ly')::uuid, 'instructor.ly@example.dev');
+insert into public.instructor_profiles (user_id, slug, status) values
+  (md5('ks:i-nam')::uuid, 'test-nam', 'active'),
+  (md5('ks:i-ly')::uuid, 'test-ly', 'active');
+insert into public.user_roles (user_id, role_id)
+  select u, r.id from unnest(array[md5('ks:i-nam')::uuid, md5('ks:i-ly')::uuid]) u, public.roles r where r.code = 'instructor';
+
+-- co-1 (owned by i-nam): section 1 has a preview lesson, section 2 is paid (lesson 8 = quiz).
+-- co-4 (owned by i-ly): published.
+insert into public.courses (id, category_id, title, slug, price_vnd, status, published_at) values
+  (md5('ks:co-1')::uuid, md5('ks:c-ai')::uuid, 'Khoá kiểm thử 1', 'khoa-kiem-thu-1', 1490000, 'published', now()),
+  (md5('ks:co-4')::uuid, md5('ks:c-design')::uuid, 'Khoá kiểm thử 4', 'khoa-kiem-thu-4', 990000, 'published', now());
+insert into public.course_instructors (course_id, instructor_id, is_primary) values
+  (md5('ks:co-1')::uuid, md5('ks:i-nam')::uuid, true),
+  (md5('ks:co-4')::uuid, md5('ks:i-ly')::uuid, true);
+insert into public.course_sections (id, course_id, title, sort_order) values
+  (md5('ks:co-1-s1')::uuid, md5('ks:co-1')::uuid, 'Chương 1', 0),
+  (md5('ks:co-1-s2')::uuid, md5('ks:co-1')::uuid, 'Chương 2', 1);
+insert into public.lessons (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, sort_order)
+  select md5('ks:co-1-s1-l' || g)::uuid, md5('ks:co-1-s1')::uuid, 'Bài 1.' || g, 'bai-1-' || g, 'video', 600, g = 1, g - 1
+  from generate_series(1, 3) g;
+insert into public.lessons (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, sort_order)
+  select md5('ks:co-1-s2-l' || g)::uuid, md5('ks:co-1-s2')::uuid, 'Bài 2.' || g, 'bai-2-' || g,
+         case when g = 8 then 'quiz' else 'video' end, 600, false, g - 1
+  from generate_series(1, 8) g;
 
 -- Student A owns course co-1 through a paid order (written as service role would).
 insert into public.orders (id, user_id, subtotal_vnd, discount_vnd, total_vnd, status, paid_at)
@@ -35,7 +62,7 @@ end $$;
 select pg_temp.as_user(null);
 do $$ declare n int; begin
   select count(*) into n from public.course_cards;
-  if n <> 14 then raise exception 'FAIL: guest sees % courses in course_cards (expected 14)', n; end if;
+  if n <> 2 then raise exception 'FAIL: guest sees % courses in course_cards (expected 2)', n; end if;
   raise notice 'PASS: guest sees published catalog (% courses)', n;
 end $$;
 

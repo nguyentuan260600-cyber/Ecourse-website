@@ -58,7 +58,7 @@ Trạng thái: `[x]` xong & đã kiểm tra · `[~]` có code, chưa kiểm ch�
 - [ ] Tài liệu triển khai đầy đủ
 
 ## Bước tiếp theo chính xác
-- [x] Dự án Supabase `khaisang` (ap-southeast-1) đã tạo, chạy 7 migration + dữ liệu mẫu; website đọc dữ liệu thật.
+- [x] Dự án Supabase `khaisang` (ap-southeast-1) đã tạo, chạy 7 migration; đã xoá khoá học/giảng viên/đánh giá mẫu (21/11) — chỉ còn 6 danh mục và mã CHAOMUNG10. Thêm khoá học thật trong Supabase.
 1. Cấu hình Auth trên dashboard: Redirect URLs, SMTP (Brevo) để gửi email xác nhận cho mọi địa chỉ.
 2. Đăng ký tài khoản thật → cấp super_admin.
 3. Bắt đầu Milestone 3: giỏ hàng DB, coupon, PayOS.

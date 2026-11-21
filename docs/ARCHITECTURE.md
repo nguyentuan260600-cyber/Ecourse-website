@@ -38,7 +38,7 @@ supabase/
 
 `features/courses/repository.ts` chọn adapter lúc khởi động:
 - **supabase** khi có `NEXT_PUBLIC_SUPABASE_URL` + `ANON_KEY` — đọc view `course_cards` (một truy vấn cho mọi thẻ khoá học, không N+1), RLS áp dụng.
-- **demo** khi thiếu cấu hình — dữ liệu từ `fixtures.ts`, banner "Dữ liệu mẫu" luôn hiển thị. Không bao giờ dùng trong production.
+- **demo** khi thiếu cấu hình — chỉ có khung danh mục từ `fixtures.ts` (không có khoá học, giảng viên, đánh giá), banner "Dữ liệu mẫu" luôn hiển thị. Không bao giờ dùng trong production.
 
 ## Rendering
 

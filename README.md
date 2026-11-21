@@ -13,13 +13,12 @@ npm install
 npm run dev
 ```
 
-Khi chưa có biến môi trường Supabase, website chạy ở **chế độ dữ liệu mẫu** (có banner vàng ở đầu trang):
-duyệt khoá học, tìm kiếm, lọc, xem chi tiết và giỏ hàng đều hoạt động; đăng nhập/đăng ký báo chưa cấu hình.
+Khi chưa có biến môi trường Supabase, website chạy ở **chế độ phát triển** (banner vàng ở đầu trang): chỉ có 6 danh mục mẫu, chưa có khoá học, giảng viên hay đánh giá; đăng nhập/đăng ký báo chưa cấu hình.
 
 ## Chạy với Supabase
 
 1. Tạo dự án Supabase, sao chép `.env.example` → `.env.local` và điền `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-2. Tạo CSDL: mở **SQL Editor** của dự án mới, dán toàn bộ `supabase/setup.sql` (migration + dữ liệu mẫu dev) rồi Run.
+2. Tạo CSDL: mở **SQL Editor** của dự án mới, dán toàn bộ `supabase/setup.sql` (migration + 6 danh mục và 1 mã giảm giá mẫu cho dev) rồi Run.
    Production: `npm run db:bundle -- --no-seed` rồi dùng `supabase/setup.production.sql`. Hoặc dùng Supabase CLI `supabase db push`.
 4. Trong Supabase Auth → URL Configuration: thêm `http://localhost:3000/auth/confirm` vào Redirect URLs.
    Trong Email Templates, dùng liên kết dạng `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`
@@ -37,7 +36,7 @@ duyệt khoá học, tìm kiếm, lọc, xem chi tiết và giỏ hàng đều h
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
 | `npm test` | Unit test (Vitest) |
 | `npm run test:db` | Chạy toàn bộ migration + seed + **kiểm thử chính sách RLS** trên Postgres nhúng (PGlite) |
-| `npm run db:seed:generate` | Sinh lại `supabase/seed.sql` từ dữ liệu mẫu |
+| `npm run db:seed:generate` | Sinh lại `supabase/seed.sql` (danh mục + mã giảm giá mẫu) |
 | `npm run check` | Chạy tất cả các bước trên + build |
 
 ## Tài liệu

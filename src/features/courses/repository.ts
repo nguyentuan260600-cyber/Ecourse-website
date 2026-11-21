@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { buildFixtureDetail, fixtureCategories, fixtureCourses, fixtureInstructors } from "./fixtures";
+import { fixtureCategories } from "./fixtures";
 import { filterCourses, normalizeText } from "./filter";
 import {
   DURATION_BUCKETS,
@@ -20,7 +20,8 @@ import {
 /**
  * Catalog data access. Two adapters behind one interface:
  *  - "supabase": real data, RLS applies (reads as the current user / anon).
- *  - "demo": DEV-ONLY fixtures, used when Supabase env vars are missing.
+ *  - "demo": DEV-ONLY, used when Supabase env vars are missing: categories only,
+ *    no courses/instructors/reviews.
  *    The UI shows a visible "Dữ liệu mẫu" banner in this mode.
  */
 export type DataSource = "supabase" | "demo";
@@ -40,17 +41,16 @@ const demo = {
     return fixtureCategories;
   },
   async search(f: CatalogFilters): Promise<CatalogResult> {
-    return filterCourses(fixtureCourses, f);
+    return filterCourses([], f);
   },
-  async bySlug(slug: string): Promise<CourseDetail | null> {
-    const c = fixtureCourses.find((x) => x.slug === slug);
-    return c ? buildFixtureDetail(c) : null;
+  async bySlug(): Promise<CourseDetail | null> {
+    return null;
   },
   async all(): Promise<CourseSummary[]> {
-    return fixtureCourses;
+    return [];
   },
   async instructors(): Promise<Instructor[]> {
-    return fixtureInstructors;
+    return [];
   },
 };
 
@@ -348,12 +348,7 @@ export interface FeaturedReview {
 }
 
 export const getFeaturedReviews = cache(async (limit = 3): Promise<FeaturedReview[]> => {
-  if (dataSource === "demo") {
-    const course = fixtureCourses[0];
-    return buildFixtureDetail(course)
-      .reviews.slice(0, limit)
-      .map((r) => ({ id: r.id, authorName: r.authorName, authorAvatarUrl: r.authorAvatarUrl, rating: r.rating, body: r.body, courseTitle: course.title, courseSlug: course.slug }));
-  }
+  if (dataSource === "demo") return [];
   const client = await db();
   const { data, error } = await client
     .from("reviews")
