@@ -3,10 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, Search, X } from "lucide-react";
-import { mainNav } from "@/config/site";
 import { ThemeToggle } from "./theme-toggle";
 
-export function MobileNav() {
+export function MobileNav({ nav }: { nav: { href: string; label: string }[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -62,7 +61,7 @@ export function MobileNav() {
           </form>
           <nav aria-label="Điều hướng chính">
             <ul className="flex flex-col gap-1">
-              {mainNav.map((item) => (
+              {nav.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="block rounded-xl px-3 py-3 font-display font-semibold hover:bg-surface-2">
                     {item.label}

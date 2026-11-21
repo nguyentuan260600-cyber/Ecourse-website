@@ -28,6 +28,17 @@ Khi chưa có biến môi trường Supabase, website chạy ở **chế độ p
    SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/create-admin.mjs ban@email.com
    ```
 
+## Video (Cloudflare Stream)
+
+1. Cloudflare Dashboard → **Stream**: bật Stream cho tài khoản.
+2. **My Profile → API Tokens → Create Token → Custom token**, quyền **Account › Stream › Edit**, giới hạn vào tài khoản của bạn.
+3. Điền vào `.env.local`: `CLOUDFLARE_ACCOUNT_ID` (Dashboard → bên phải trang Overview) và `CLOUDFLARE_STREAM_API_TOKEN`, rồi khởi động lại.
+4. Đăng nhập bằng tài khoản admin/giảng viên → **/admin/videos** → tải video (tus, tiếp tục được khi rớt mạng, tới 30 GB).
+5. Khi video "Sẵn sàng", sao chép UID vào `lessons.video_uid` (hoặc `courses.preview_video_uid` cho video giới thiệu) trong Supabase.
+
+Mọi video tạo với `requireSignedURLs`: chỉ phát được qua liên kết có chữ ký 1 giờ do máy chủ cấp sau khi kiểm tra quyền
+(`/api/lessons/[id]/playback` → `get_lesson_content`). Token qua API giới hạn ~1.000/ngày — khi lượng học viên lớn, chuyển sang khoá ký riêng (signing key).
+
 ## Lệnh
 
 | Lệnh | Mô tả |
@@ -50,5 +61,5 @@ Khi chưa có biến môi trường Supabase, website chạy ở **chế độ p
 
 ## Giới hạn hiện tại
 
-- Chưa có thanh toán PayOS, mã giảm giá, video Bunny Stream, quiz/chứng chỉ PDF, khu vực giảng viên/admin (Milestone 3–5). Nút "Tiến hành thanh toán" đang tắt có chủ đích.
+- Chưa có thanh toán PayOS, mã giảm giá, trang học bài (/learn), quiz/chứng chỉ PDF, khu vực soạn khoá học (Milestone 3–5). Video: đã có tải lên + phát qua Cloudflare Stream (xem bên dưới). Nút "Tiến hành thanh toán" đang tắt có chủ đích.
 - Luồng đăng nhập/đăng ký đã viết theo chuẩn Supabase SSR nhưng **chưa được kiểm thử với một dự án Supabase thật**.

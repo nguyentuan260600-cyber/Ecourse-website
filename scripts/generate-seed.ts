@@ -3,8 +3,8 @@
  *
  *   node --conditions=react-server scripts/generate-seed.ts
  *
- * DEVELOPMENT ONLY. Seeds the category skeleton and one sample coupon.
- * No courses, instructors or reviews: those are added for real in Supabase.
+ * DEVELOPMENT ONLY. Seeds one sample coupon. Categories, courses, instructors,
+ * learning paths and reviews are added for real in Supabase.
  * The generated seed refuses to run when app.environment = 'production'.
  */
 import { writeFileSync } from "node:fs";
@@ -25,12 +25,11 @@ do $$ begin
 end $$;
 `);
 
-out.push("-- Categories");
-fixtureCategories.forEach((c, n) =>
+for (const [n, c] of fixtureCategories.entries()) {
   out.push(
     `insert into public.categories (id, name, slug, description, tags, sort_order) values (${id(c.id)}, ${q(c.name)}, ${q(c.slug)}, ${q(c.description)}, ${arr(c.tags)}, ${n}) on conflict (slug) do nothing;`,
-  ),
-);
+  );
+}
 
 out.push(`
 -- Sample coupon (dev)
@@ -40,4 +39,4 @@ on conflict (code) do nothing;
 `);
 
 writeFileSync(join(import.meta.dirname, "..", "supabase", "seed.sql"), out.join("\n") + "\n");
-console.log(`seed.sql: ${fixtureCategories.length} danh mục, 1 mã giảm giá`);
+console.log(`seed.sql: ${fixtureCategories.length} danh mục, 1 mã giảm giá mẫu`);

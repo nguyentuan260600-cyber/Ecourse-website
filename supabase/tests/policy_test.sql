@@ -14,6 +14,10 @@ insert into public.instructor_profiles (user_id, slug, status) values
 insert into public.user_roles (user_id, role_id)
   select u, r.id from unnest(array[md5('ks:i-nam')::uuid, md5('ks:i-ly')::uuid]) u, public.roles r where r.code = 'instructor';
 
+insert into public.categories (id, name, slug) values
+  (md5('ks:c-ai')::uuid, 'Danh mục kiểm thử A', 'kiem-thu-a'),
+  (md5('ks:c-design')::uuid, 'Danh mục kiểm thử B', 'kiem-thu-b');
+
 -- co-1 (owned by i-nam): section 1 has a preview lesson, section 2 is paid (lesson 8 = quiz).
 -- co-4 (owned by i-ly): published.
 insert into public.courses (id, category_id, title, slug, price_vnd, status, published_at) values
@@ -39,7 +43,7 @@ values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000
 insert into public.access_grants (user_id, course_id, source_type, source_id)
 values ('00000000-0000-0000-0000-00000000000a', md5('ks:co-1')::uuid, 'order', '00000000-0000-0000-0000-0000000000a1');
 insert into public.enrollments (user_id, course_id) values ('00000000-0000-0000-0000-00000000000a', md5('ks:co-1')::uuid);
-update public.lessons set content = 'NOI DUNG BI MAT', bunny_video_id = 'vid-secret' where section_id in
+update public.lessons set content = 'NOI DUNG BI MAT', video_uid = 'aaaabbbbccccddddeeeeffff00001111' where section_id in
   (select id from public.course_sections where course_id = md5('ks:co-1')::uuid);
 
 -- A quiz with a correct answer.
@@ -93,8 +97,8 @@ do $$ declare n int; begin
 end $$;
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
 do $$ declare v text; begin
-  select bunny_video_id into v from public.get_lesson_content(md5('ks:co-1-s2-l1')::uuid);
-  if v is distinct from 'vid-secret' then raise exception 'FAIL: buyer cannot read purchased lesson'; end if;
+  select video_uid into v from public.get_lesson_content(md5('ks:co-1-s2-l1')::uuid);
+  if v is distinct from 'aaaabbbbccccddddeeeeffff00001111' then raise exception 'FAIL: buyer cannot read purchased lesson'; end if;
   raise notice 'PASS: buyer can open purchased lesson';
 end $$;
 

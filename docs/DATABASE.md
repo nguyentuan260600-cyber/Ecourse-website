@@ -47,6 +47,7 @@ erDiagram
 | Thương mại | `carts`, `cart_items`, `coupons`, `coupon_courses`, `orders`, `order_items`, `payments`, `payment_events`, `coupon_redemptions`, `refunds` | CHECK `total = subtotal - discount`; snapshot giá trong `order_items`; `payment_events(provider,event_id)` unique. |
 | Học tập | `access_grants`, `enrollments`, `lesson_progress`, `lesson_notes`, `quizzes`, `quiz_questions`, `quiz_options`, `quiz_attempts`, `quiz_answers`, `assignments`, `assignment_submissions`, `certificates` | `access_grants` là nguồn quyền truy cập duy nhất. `enrollments(user,course)` unique. |
 | Cộng đồng | `reviews`, `wishlists`, `discussion_threads`, `discussion_messages`, `notifications`, `support_tickets`, `support_messages`, `newsletter_subscribers` | |
+| Lộ trình | `learning_paths`, `learning_path_steps`, `learning_path_courses` | Chỉ `status = 'published'` hiển thị; admin quản lý. |
 | Quản trị | `audit_logs` (chỉ thêm), `announcements`, `email_templates`, `email_outbox`, `system_settings`, `activity_events`, `banners` | |
 
 ## Hàm quan trọng (SECURITY DEFINER)
@@ -64,7 +65,7 @@ erDiagram
 
 ## Ẩn cột nhạy cảm
 
-- `lessons.content`, `lessons.bunny_video_id`: thu hồi quyền SELECT cột với `anon/authenticated`.
+- `lessons.content`, `lessons.video_uid` (Cloudflare Stream UID): thu hồi quyền SELECT cột với `anon/authenticated`.
 - `quiz_options.is_correct`: thu hồi quyền SELECT cột; chấm điểm chạy phía server.
 - `instructor_profiles.status/slug`: giảng viên không tự sửa được.
 

@@ -54,4 +54,4 @@ supabase/
 ## Luồng sắp triển khai (thiết kế đã chốt trong schema)
 
 - **Thanh toán**: tạo `orders` + `order_items` (giá snapshot, tính server) → `payments` (PayOS) → webhook xác thực chữ ký → ghi `payment_events` (unique `provider,event_id` ⇒ idempotent) → trong một transaction: `orders.status='paid'`, insert `access_grants` (unique theo đơn) + `enrollments` (unique user/course) + `email_outbox`.
-- **Video**: server kiểm `has_course_access` + bài thuộc khoá → ký token Bunny ngắn hạn. `lessons.bunny_video_id` không đọc được qua API.
+- **Video (Cloudflare Stream)**: tải lên tus — `/api/admin/stream/tus` kiểm vai trò rồi xin Cloudflare URL tải một lần, trình duyệt gửi tệp thẳng lên Cloudflare. Phát: `/api/lessons/[id]/playback` gọi `get_lesson_content` (RLS quyết định quyền) → token ký 1 giờ → iframe. `lessons.video_uid` không đọc được qua API. Mã: `src/lib/cloudflare/stream.ts`.

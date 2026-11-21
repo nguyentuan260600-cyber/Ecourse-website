@@ -72,7 +72,10 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
 
       {isStaff ? (
         <p className="mt-6 flex items-center gap-2 rounded-2xl bg-surface px-4 py-3 text-sm text-ink-muted">
-          <ShieldCheck size={16} className="text-brand" aria-hidden /> Vai trò: {user.roles.join(", ")}. Khu vực giảng viên và quản trị sẽ có trong Milestone 5.
+          <ShieldCheck size={16} className="text-brand" aria-hidden /> Vai trò: {user.roles.join(", ")}.
+          <Link href="/admin/videos" className="font-semibold text-brand-strong hover:underline">
+            Mở thư viện video →
+          </Link>
         </p>
       ) : null}
 

@@ -42,7 +42,9 @@ Trạng thái: `[x]` xong & đã kiểm tra · `[~]` có code, chưa kiểm ch�
 
 ## Milestone 4 — LMS
 - [ ] Dashboard học viên (dữ liệu thật)
-- [ ] Bunny Stream: token phát video ngắn hạn sau khi kiểm tra quyền
+- [x] Cloudflare Stream: tải lên tus (/admin/videos), token phát 1 giờ sau khi kiểm tra quyền, video giới thiệu + bài học thử
+- [~] Kiểm thử với tài khoản Cloudflare thật (cần CLOUDFLARE_ACCOUNT_ID + API token)
+- [ ] Đồng bộ trạng thái video bằng webhook; chuyển sang signing key khi > 1.000 lượt xem/ngày
 - [ ] Trình phát + giáo trình + lưu tiến độ (debounce)
 - [ ] Ghi chú, quiz, bài tập, chứng chỉ PDF + trang xác thực
 
@@ -56,6 +58,9 @@ Trạng thái: `[x]` xong & đã kiểm tra · `[~]` có code, chưa kiểm ch�
 - [ ] Playwright E2E, test webhook
 - [ ] Rate limiting, Sentry, CSP
 - [ ] Tài liệu triển khai đầy đủ
+
+## Nội dung
+- [x] Đã xoá danh mục và lộ trình mẫu (21/11). Lộ trình giờ là dữ liệu: bảng `learning_paths` + `learning_path_steps` (status `published` mới hiển thị).
 
 ## Bước tiếp theo chính xác
 - [x] Dự án Supabase `khaisang` (ap-southeast-1) đã tạo, chạy 7 migration; đã xoá khoá học/giảng viên/đánh giá mẫu (21/11) — chỉ còn 6 danh mục và mã CHAOMUNG10. Thêm khoá học thật trong Supabase.

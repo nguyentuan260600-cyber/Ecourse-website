@@ -3,18 +3,9 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { Logo } from "./logo";
 import { NewsletterForm } from "@/components/home/newsletter-form";
+import { getCategories } from "@/features/courses/repository";
 
-const columns = [
-  {
-    title: "Chương trình học",
-    links: [
-      { href: "/courses?category=lap-trinh-ai", label: "Lập trình & AI" },
-      { href: "/courses?category=thiet-ke-san-pham", label: "Thiết kế sản phẩm" },
-      { href: "/courses?category=du-lieu", label: "Dữ liệu & BI" },
-      { href: "/courses?category=kinh-doanh-quan-tri", label: "Quản trị sản phẩm" },
-      { href: "/courses?price=free", label: "Khoá học miễn phí" },
-    ],
-  },
+const staticColumns = [
   {
     title: "Khai Sáng",
     links: [
@@ -26,7 +17,19 @@ const columns = [
   },
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const categories = await getCategories().catch(() => []);
+  const columns = [
+    {
+      title: "Chương trình học",
+      links: [
+        { href: "/courses", label: "Tất cả khoá học" },
+        ...categories.slice(0, 5).map((c) => ({ href: `/courses?category=${c.slug}`, label: c.name })),
+        { href: "/courses?price=free", label: "Khoá học miễn phí" },
+      ],
+    },
+    ...staticColumns,
+  ];
   return (
     <footer className="mt-24 border-t border-line/70 bg-card">
       <div className="container-page grid gap-12 py-14 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.1fr]">

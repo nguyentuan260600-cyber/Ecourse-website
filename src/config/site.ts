@@ -12,7 +12,6 @@ export const siteConfig = {
 export const mainNav = [
   { href: "/courses", label: "Khám phá" },
   { href: "/categories", label: "Danh mục" },
-  { href: "/#lo-trinh", label: "Lộ trình học" },
   { href: "/instructors", label: "Giảng viên" },
   { href: "/#faq", label: "Hỏi đáp" },
 ] as const;

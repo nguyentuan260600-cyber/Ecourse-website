@@ -191,7 +191,7 @@ const supabaseAdapter = {
     const summary = toSummary(card as unknown as CardRow);
 
     const [course, sections, instructors, reviews] = await Promise.all([
-      client.from("courses").select("description,language,updated_at,objectives,requirements,includes").eq("id", summary.id).single(),
+      client.from("courses").select("description,language,updated_at,objectives,requirements,includes,preview_video_uid").eq("id", summary.id).single(),
       client
         .from("course_sections")
         .select("id,title,sort_order,lessons(id,title,lesson_type,duration_seconds,is_preview,sort_order)")
@@ -230,6 +230,7 @@ const supabaseAdapter = {
     return {
       ...summary,
       description: course.data.description,
+      previewVideoUid: course.data.preview_video_uid ?? null,
       language: course.data.language === "vi" ? "Tiếng Việt" : course.data.language,
       updatedAt: course.data.updated_at,
       objectives: course.data.objectives ?? [],

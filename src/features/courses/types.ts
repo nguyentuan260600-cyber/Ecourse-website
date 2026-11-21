@@ -84,6 +84,7 @@ export interface Review {
 
 export interface CourseDetail extends CourseSummary {
   description: string;
+  previewVideoUid: string | null;
   language: string;
   updatedAt: string;
   objectives: { title: string; body: string }[];

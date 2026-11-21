@@ -1,6 +1,7 @@
 import { ChevronDown, FileText, HelpCircle, Lock, PlayCircle } from "lucide-react";
 import type { CurriculumSection, LessonType } from "@/features/courses/types";
 import { formatClock, formatDuration } from "@/lib/utils/format";
+import { PreviewLessonButton } from "./preview-lesson-button";
 
 const ICON: Record<LessonType, typeof PlayCircle> = { video: PlayCircle, text: FileText, document: FileText, quiz: HelpCircle, assignment: FileText };
 
@@ -39,7 +40,7 @@ export function Curriculum({ sections }: { sections: CurriculumSection[] }) {
                       <Icon size={16} className={l.isPreview ? "text-brand" : "text-ink-subtle"} aria-label={l.isPreview ? "Học thử" : "Cần đăng ký"} />
                       <span className="flex-1 text-ink-muted">{l.title}</span>
                       {l.type === "quiz" ? <span className="text-[11px] font-semibold text-accent-ink">Quiz</span> : null}
-                      {l.isPreview ? <span className="rounded-md bg-success-soft px-2 py-0.5 text-[11px] font-bold text-success-ink">Học thử miễn phí</span> : null}
+                      {l.isPreview ? <PreviewLessonButton lessonId={l.id} title={l.title} /> : null}
                       <span className="w-12 text-right text-xs text-ink-subtle tabular-nums">{formatClock(l.durationSeconds)}</span>
                     </li>
                   );

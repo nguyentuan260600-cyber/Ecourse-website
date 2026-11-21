@@ -1,13 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BookOpen, CalendarClock, CheckCircle2, ChevronRight, Clock, Globe, ListChecks, PlayCircle, ShieldCheck, Target, Users } from "lucide-react";
+import {
+  BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Globe,
+  ListChecks,
+  PlayCircle,
+  ShieldCheck,
+  Target,
+  Users,
+} from "lucide-react";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { CourseCard } from "@/components/courses/course-card";
 import { CourseThumb } from "@/components/courses/course-thumb";
 import { Curriculum } from "@/components/courses/curriculum";
 import { Price } from "@/components/courses/price";
 import { WishlistButton } from "@/components/courses/wishlist-button";
+import { StreamPlayer } from "@/components/courses/stream-player";
+import { isStreamConfigured, signedPlayerUrl } from "@/lib/cloudflare/stream";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +43,12 @@ export async function generateMetadata({ params }: PageProps<"/courses/[slug]">)
     title: c.title,
     description: c.shortDescription,
     alternates: { canonical: `/courses/${c.slug}` },
-    openGraph: { type: "website", title: c.title, description: c.shortDescription, images: c.thumbnailUrl ? [{ url: c.thumbnailUrl }] : undefined },
+    openGraph: {
+      type: "website",
+      title: c.title,
+      description: c.shortDescription,
+      images: c.thumbnailUrl ? [{ url: c.thumbnailUrl }] : undefined,
+    },
   };
 }
 
@@ -52,6 +71,13 @@ export default async function CourseDetailPage({ params }: PageProps<"/courses/[
   const related = await getRelatedCourses(course);
   const primary = course.instructors[0];
   const previewCount = course.sections.flatMap((s) => s.lessons).filter((l) => l.isPreview).length;
+  // Intro video of a published course is public; still served via a short-lived signed URL.
+  const introUrl =
+    course.previewVideoUid && isStreamConfigured
+      ? await signedPlayerUrl(course.previewVideoUid, { poster: true })
+          .then((r) => r.url)
+          .catch(() => null)
+      : null;
 
   return (
     <div className="container-page py-8">
@@ -83,7 +109,9 @@ export default async function CourseDetailPage({ params }: PageProps<"/courses/[
             <p className="text-lg leading-8 text-ink-muted">{course.shortDescription}</p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-surface px-5 py-4 ring-1 ring-line/60">
               <span className="flex items-center gap-2">
-                <span className="font-display text-xl font-extrabold text-ink">{course.ratingAverage ? course.ratingAverage.toFixed(1) : "—"}</span>
+                <span className="font-display text-xl font-extrabold text-ink">
+                  {course.ratingAverage ? course.ratingAverage.toFixed(1) : "—"}
+                </span>
                 <Stars value={course.ratingAverage} />
                 <span className="text-sm text-ink-subtle">({formatCount(course.ratingCount)} đánh giá)</span>
               </span>
@@ -101,17 +129,32 @@ export default async function CourseDetailPage({ params }: PageProps<"/courses/[
             </div>
           </header>
 
-          <div className="relative overflow-hidden rounded-3xl shadow-[var(--shadow-lift)]">
-            <CourseThumb src={course.thumbnailUrl} alt={`Ảnh giới thiệu khoá học ${course.title}`} priority className="aspect-video" sizes="(min-width:1024px) 800px, 100vw" />
-            <a href="#noi-dung" className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-t from-[#131b2e]/70 to-transparent text-white">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand shadow-[var(--shadow-brand)] transition hover:scale-105">
-                <PlayCircle size={32} aria-hidden />
-              </span>
-              <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-semibold backdrop-blur">
-                {previewCount ? `${previewCount} bài học thử miễn phí` : "Xem giáo trình"}
-              </span>
-            </a>
-          </div>
+          {introUrl ? (
+            <div className="overflow-hidden rounded-3xl shadow-[var(--shadow-lift)]">
+              <StreamPlayer src={introUrl} title={`Video giới thiệu: ${course.title}`} />
+            </div>
+          ) : (
+            <div className="relative overflow-hidden rounded-3xl shadow-[var(--shadow-lift)]">
+              <CourseThumb
+                src={course.thumbnailUrl}
+                alt={`Ảnh giới thiệu khoá học ${course.title}`}
+                priority
+                className="aspect-video"
+                sizes="(min-width:1024px) 800px, 100vw"
+              />
+              <a
+                href="#noi-dung"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-t from-[#131b2e]/70 to-transparent text-white"
+              >
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand shadow-[var(--shadow-brand)] transition hover:scale-105">
+                  <PlayCircle size={32} aria-hidden />
+                </span>
+                <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-semibold backdrop-blur">
+                  {previewCount ? `${previewCount} bài học thử miễn phí` : "Xem giáo trình"}
+                </span>
+              </a>
+            </div>
+          )}
 
           {course.objectives.length ? (
             <Block icon={<Target size={18} aria-hidden />} title="Bạn sẽ đạt được gì?">
@@ -277,7 +320,11 @@ export default async function CourseDetailPage({ params }: PageProps<"/courses/[
             ? { aggregateRating: { "@type": "AggregateRating", ratingValue: course.ratingAverage, ratingCount: course.ratingCount } }
             : {}),
           offers: { "@type": "Offer", category: course.priceVnd === 0 ? "Free" : "Paid", price: course.priceVnd, priceCurrency: "VND" },
-          hasCourseInstance: { "@type": "CourseInstance", courseMode: "online", courseWorkload: `PT${Math.round(course.durationSeconds / 3600)}H` },
+          hasCourseInstance: {
+            "@type": "CourseInstance",
+            courseMode: "online",
+            courseWorkload: `PT${Math.round(course.durationSeconds / 3600)}H`,
+          },
         }}
       />
     </div>

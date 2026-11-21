@@ -9,21 +9,23 @@ import { Testimonials } from "@/components/home/testimonials";
 import { HowItWorks, ValueProps } from "@/components/home/value-props";
 import { getAllCourses, getCatalogStats, getCategories, getFeaturedReviews, getInstructors } from "@/features/courses/repository";
 import { JsonLd } from "@/components/seo/json-ld";
+import { getLearningPaths } from "@/features/learning-paths/repository";
 
 export default async function HomePage() {
-  const [stats, categories, courses, instructors, reviews] = await Promise.all([
+  const [stats, categories, courses, instructors, reviews, paths] = await Promise.all([
     getCatalogStats(),
     getCategories(),
     getAllCourses(),
     getInstructors(),
     getFeaturedReviews(),
+    getLearningPaths(),
   ]);
   return (
     <>
       <Hero stats={stats} />
       <CategoryBento categories={categories} />
       <FeaturedCourses all={courses} />
-      <LearningPaths />
+      <LearningPaths paths={paths} />
       <ValueProps />
       <InstructorHighlights instructors={instructors} />
       <HowItWorks />

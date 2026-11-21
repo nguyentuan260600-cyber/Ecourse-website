@@ -1297,6 +1297,102 @@ grant execute on function public.assign_role(uuid, text, boolean) to authenticat
 comment on table public.email_outbox is 'Service-role only (no RLS policies by design).';
 
 
+-- ===== migrations/20261121000008_learning_paths.sql =====
+
+-- =====================================================================
+-- 0008 · Learning paths (editable content for the homepage "Lộ trình" section)
+-- Shown publicly only when status = 'published'. Managed by admins.
+-- =====================================================================
+
+create table public.learning_paths (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique check (slug ~ '^[a-z0-9-]{2,80}$'),
+  title text not null check (char_length(title) between 2 and 160),
+  summary text not null default '' check (char_length(summary) <= 600),
+  duration_label text not null default '' check (char_length(duration_label) <= 60), -- vd: "khoảng 6 tháng"
+  link_href text check (link_href is null or link_href ~ '^/'),                      -- vd: "/courses?category=lap-trinh"
+  is_featured boolean not null default false,
+  status text not null default 'draft' check (status in ('draft','published')),
+  sort_order int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index learning_paths_status_idx on public.learning_paths(status, sort_order);
+create trigger learning_paths_updated_at before update on public.learning_paths
+  for each row execute function public.set_updated_at();
+
+create table public.learning_path_steps (
+  id uuid primary key default gen_random_uuid(),
+  path_id uuid not null references public.learning_paths(id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 160),
+  detail text not null default '' check (char_length(detail) <= 300),
+  sort_order int not null default 0
+);
+create index learning_path_steps_path_idx on public.learning_path_steps(path_id, sort_order);
+
+create table public.learning_path_courses (
+  path_id uuid not null references public.learning_paths(id) on delete cascade,
+  course_id uuid not null references public.courses(id) on delete cascade,
+  sort_order int not null default 0,
+  primary key (path_id, course_id)
+);
+
+alter table public.learning_paths enable row level security;
+alter table public.learning_path_steps enable row level security;
+alter table public.learning_path_courses enable row level security;
+
+create policy learning_paths_read on public.learning_paths for select
+  using (status = 'published' or private.is_admin());
+create policy learning_paths_admin on public.learning_paths for all
+  using (private.is_admin()) with check (private.is_admin());
+
+create policy learning_path_steps_read on public.learning_path_steps for select
+  using (exists (select 1 from public.learning_paths p where p.id = path_id and (p.status = 'published' or private.is_admin())));
+create policy learning_path_steps_admin on public.learning_path_steps for all
+  using (private.is_admin()) with check (private.is_admin());
+
+create policy learning_path_courses_read on public.learning_path_courses for select
+  using (exists (select 1 from public.learning_paths p where p.id = path_id and (p.status = 'published' or private.is_admin())));
+create policy learning_path_courses_admin on public.learning_path_courses for all
+  using (private.is_admin()) with check (private.is_admin());
+
+
+-- ===== migrations/20261121000009_cloudflare_stream.sql =====
+
+-- =====================================================================
+-- 0009 · Video provider: Cloudflare Stream
+-- Video ids are provider-neutral (`video_uid` = Cloudflare Stream video UID).
+-- Videos are uploaded with requireSignedURLs, so a UID alone cannot be played:
+-- the server mints a short-lived token only after checking access.
+-- =====================================================================
+
+alter table public.lessons rename column bunny_video_id to video_uid;
+alter table public.lessons add constraint lessons_video_uid_format
+  check (video_uid is null or video_uid ~ '^[a-f0-9]{32}$');
+
+alter table public.courses rename column preview_bunny_video_id to preview_video_uid;
+alter table public.courses add constraint courses_preview_video_uid_format
+  check (preview_video_uid is null or preview_video_uid ~ '^[a-f0-9]{32}$');
+
+-- Column privileges follow the rename; re-state them explicitly for clarity.
+revoke select on public.lessons from anon, authenticated;
+grant select (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, is_required,
+              sort_order, video_status, created_at, updated_at)
+  on public.lessons to anon, authenticated;
+
+-- Return type changes (column renamed), so drop and recreate.
+drop function public.get_lesson_content(uuid);
+create function public.get_lesson_content(p_lesson uuid)
+returns table (id uuid, lesson_type text, content text, video_uid text, duration_seconds int)
+language sql stable security definer set search_path = public as $$
+  select l.id, l.lesson_type, l.content, l.video_uid, l.duration_seconds
+  from public.lessons l
+  where l.id = p_lesson and private.can_view_lesson(p_lesson)
+$$;
+revoke execute on function public.get_lesson_content(uuid) from public;
+grant execute on function public.get_lesson_content(uuid) to anon, authenticated;
+
+
 -- ===== seed.sql (DEV SAMPLE DATA) =====
 
 -- AUTO-GENERATED by scripts/generate-seed.ts — DEVELOPMENT DATA ONLY.
@@ -1307,13 +1403,6 @@ do $$ begin
   end if;
 end $$;
 
--- Categories
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-ai')::uuid, 'Lập trình & AI Engineering', 'lap-trinh-ai', 'Kiến trúc Fullstack hiện đại, LLM, Vector Database và hạ tầng đám mây.', array['Next.js','Python','LangChain']::text[], 0) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-design')::uuid, 'Thiết kế UI/UX & Design System', 'thiet-ke-san-pham', 'Design Token, Micro-interactions, chuẩn hoá quy trình bàn giao.', array['Figma','Design System']::text[], 1) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-data')::uuid, 'Dữ liệu & Business Intelligence', 'du-lieu', 'Phân tích dữ liệu, trực quan hoá và Machine Learning ứng dụng.', array['SQL','Pandas','Power BI']::text[], 2) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-business')::uuid, 'Quản trị sản phẩm & Kinh doanh', 'kinh-doanh-quan-tri', 'Product Discovery, OKRs, Agile và tăng trưởng.', array['OKRs','Scrum','Growth']::text[], 3) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-cloud')::uuid, 'DevOps, Cloud & Bảo mật', 'cong-nghe-ha-tang', 'Container, CI/CD, Kubernetes và an toàn ứng dụng web.', array['Docker','Kubernetes','OWASP']::text[], 4) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-lang')::uuid, 'Ngoại ngữ cho dân công nghệ', 'ngoai-ngu', 'Tiếng Anh giao tiếp, thuyết trình kỹ thuật và phỏng vấn quốc tế.', array['IELTS','Tech English']::text[], 5) on conflict (slug) do nothing;
 
 -- Sample coupon (dev)
 insert into public.coupons (code, description, discount_type, discount_value, max_discount_vnd, expires_at, max_redemptions)

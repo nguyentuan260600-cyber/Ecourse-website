@@ -6,13 +6,6 @@ do $$ begin
   end if;
 end $$;
 
--- Categories
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-ai')::uuid, 'Lập trình & AI Engineering', 'lap-trinh-ai', 'Kiến trúc Fullstack hiện đại, LLM, Vector Database và hạ tầng đám mây.', array['Next.js','Python','LangChain']::text[], 0) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-design')::uuid, 'Thiết kế UI/UX & Design System', 'thiet-ke-san-pham', 'Design Token, Micro-interactions, chuẩn hoá quy trình bàn giao.', array['Figma','Design System']::text[], 1) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-data')::uuid, 'Dữ liệu & Business Intelligence', 'du-lieu', 'Phân tích dữ liệu, trực quan hoá và Machine Learning ứng dụng.', array['SQL','Pandas','Power BI']::text[], 2) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-business')::uuid, 'Quản trị sản phẩm & Kinh doanh', 'kinh-doanh-quan-tri', 'Product Discovery, OKRs, Agile và tăng trưởng.', array['OKRs','Scrum','Growth']::text[], 3) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-cloud')::uuid, 'DevOps, Cloud & Bảo mật', 'cong-nghe-ha-tang', 'Container, CI/CD, Kubernetes và an toàn ứng dụng web.', array['Docker','Kubernetes','OWASP']::text[], 4) on conflict (slug) do nothing;
-insert into public.categories (id, name, slug, description, tags, sort_order) values (md5('ks:c-lang')::uuid, 'Ngoại ngữ cho dân công nghệ', 'ngoai-ngu', 'Tiếng Anh giao tiếp, thuyết trình kỹ thuật và phỏng vấn quốc tế.', array['IELTS','Tech English']::text[], 5) on conflict (slug) do nothing;
 
 -- Sample coupon (dev)
 insert into public.coupons (code, description, discount_type, discount_value, max_discount_vnd, expires_at, max_redemptions)
