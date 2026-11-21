@@ -1,26 +1,163 @@
 @import "tailwindcss";
 
+/* Dark mode follows the `.dark` class on <html> (set by ThemeScript before paint). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens — ported from the Stitch project "Premium EdTech Marketplace & LMS".
+ * Brand: primary #6D5EF7 / hover #5748DE, accent #F4B860, success #10B981.
+ * Semantic names so dark mode only swaps the variables.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #faf8ff;
+  --surface: #f2f3ff;
+  --surface-2: #eaedff;
+  --surface-3: #e2e7ff;
+  --card: #ffffff;
+  --ink: #131b2e;
+  --ink-muted: #474555;
+  --ink-subtle: #787586;
+  --line: #e5e7eb;
+  --line-strong: #c8c4d7;
+
+  --brand: #6d5ef7;
+  --brand-hover: #5748de;
+  --brand-strong: #5442dd;
+  --brand-soft: #e4dfff;
+  --brand-ink: #3c23c6;
+
+  --accent: #f4b860;
+  --accent-soft: #ffddb2;
+  --accent-ink: #825500;
+
+  --success: #10b981;
+  --success-soft: #d1fae5;
+  --success-ink: #006b49;
+
+  --danger: #ba1a1a;
+  --danger-soft: #ffdad6;
+}
+
+.dark {
+  --bg: #0b0d17;
+  --surface: #121527;
+  --surface-2: #181c33;
+  --surface-3: #20253f;
+  --card: #141829;
+  --ink: #eef0ff;
+  --ink-muted: #b4b6cc;
+  --ink-subtle: #8c8ea6;
+  --line: #262b45;
+  --line-strong: #363c5c;
+
+  --brand: #8478ff;
+  --brand-hover: #9a90ff;
+  --brand-strong: #a79fff;
+  --brand-soft: #2a2557;
+  --brand-ink: #c5c0ff;
+
+  --accent: #f8bc63;
+  --accent-soft: #3d2c0f;
+  --accent-ink: #ffddb2;
+
+  --success: #34d399;
+  --success-soft: #0d3326;
+  --success-ink: #6ffbbe;
+
+  --danger: #ffb4ab;
+  --danger-soft: #4a1210;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-ink: var(--success-ink);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --shadow-soft: 0 1px 2px rgb(19 27 46 / 0.04), 0 4px 16px -4px rgb(19 27 46 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(19 27 46 / 0.04), 0 16px 40px -12px rgb(19 27 46 / 0.14);
+  --shadow-brand: 0 8px 24px -6px rgb(109 94 247 / 0.4);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--brand-ink);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility container-page {
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+}
+
+@utility text-gradient-brand {
+  background-image: linear-gradient(90deg, var(--brand-strong), var(--brand), var(--accent-ink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

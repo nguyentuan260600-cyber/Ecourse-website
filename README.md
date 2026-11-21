@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Khai Sáng — Nền tảng bán khoá học & LMS
 
-## Getting Started
+Marketplace khoá học trực tuyến + hệ thống quản lý học tập (LMS) bằng tiếng Việt.
+Next.js 16 (App Router) · TypeScript strict · Tailwind CSS 4 · Supabase (Postgres, Auth, RLS).
+Giao diện dựa trên dự án Stitch **"Premium EdTech Marketplace & LMS"**.
 
-First, run the development server:
+> Tiến độ và phạm vi chi tiết: xem [TASKS.md](TASKS.md). Hiện xong Milestone 0–1 và phần lớn Milestone 2.
+
+## Chạy nhanh (không cần Supabase)
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Khi chưa có biến môi trường Supabase, website chạy ở **chế độ dữ liệu mẫu** (có banner vàng ở đầu trang):
+duyệt khoá học, tìm kiếm, lọc, xem chi tiết và giỏ hàng đều hoạt động; đăng nhập/đăng ký báo chưa cấu hình.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Chạy với Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Tạo dự án Supabase, sao chép `.env.example` → `.env.local` và điền `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+2. Chạy migration: `supabase link --project-ref <ref>` rồi `supabase db push` (thư mục `supabase/migrations`).
+3. (Chỉ môi trường dev) nạp dữ liệu mẫu: chạy `supabase/seed.sql` trong SQL editor hoặc `supabase db reset` khi dùng local.
+4. Trong Supabase Auth → URL Configuration: thêm `http://localhost:3000/auth/confirm` vào Redirect URLs.
+   Trong Email Templates, dùng liên kết dạng `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`
+   (với "Reset password": `type=recovery`).
+5. Đăng ký một tài khoản trên website rồi cấp quyền quản trị:
+   ```bash
+   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/create-admin.mjs ban@email.com
+   ```
 
-## Learn More
+## Lệnh
 
-To learn more about Next.js, take a look at the following resources:
+| Lệnh | Mô tả |
+| --- | --- |
+| `npm run dev` | Chạy dev server |
+| `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
+| `npm test` | Unit test (Vitest) |
+| `npm run test:db` | Chạy toàn bộ migration + seed + **kiểm thử chính sách RLS** trên Postgres nhúng (PGlite) |
+| `npm run db:seed:generate` | Sinh lại `supabase/seed.sql` từ dữ liệu mẫu |
+| `npm run check` | Chạy tất cả các bước trên + build |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tài liệu
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — cấu trúc, luồng dữ liệu, rendering
+- [docs/DATABASE.md](docs/DATABASE.md) — lược đồ, ERD, RLS
+- [docs/SECURITY.md](docs/SECURITY.md) — mô hình phân quyền và các biện pháp bảo mật
+- [docs/API.md](docs/API.md) — route handler & server action
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — triển khai Vercel + Supabase
+- [docs/OPERATIONS.md](docs/OPERATIONS.md) — vận hành, sao lưu, khôi phục
 
-## Deploy on Vercel
+## Giới hạn hiện tại
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Chưa có thanh toán PayOS, mã giảm giá, video Bunny Stream, quiz/chứng chỉ PDF, khu vực giảng viên/admin (Milestone 3–5). Nút "Tiến hành thanh toán" đang tắt có chủ đích.
+- Luồng đăng nhập/đăng ký đã viết theo chuẩn Supabase SSR nhưng **chưa được kiểm thử với một dự án Supabase thật**.
