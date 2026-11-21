@@ -1,7 +1,7 @@
 // Runs migrations + seed + policy tests on embedded Postgres (PGlite).
 // Usage: npm run test:db
 import { PGlite } from "@electric-sql/pglite";
-import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
+import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto"; // only for "create extension" compatibility
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 

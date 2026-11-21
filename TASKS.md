@@ -52,12 +52,13 @@ Trạng thái: `[x]` xong & đã kiểm tra · `[~]` có code, chưa kiểm ch�
 - [ ] Analytics (Recharts), hỗ trợ, audit log UI
 
 ## Milestone 6 — Production hardening
-- [x] Test chính sách DB (19 ca, PGlite) + unit test (26 ca) + GitHub Actions CI
+- [x] Test chính sách DB (20 ca, PGlite) + unit test (26 ca) + GitHub Actions CI
 - [ ] Playwright E2E, test webhook
 - [ ] Rate limiting, Sentry, CSP
 - [ ] Tài liệu triển khai đầy đủ
 
 ## Bước tiếp theo chính xác
-1. Tạo dự án Supabase, điền `.env.local`, chạy migration (`supabase db push`) và `seed.sql`.
-2. Kiểm tra luồng đăng ký/đăng nhập thật.
-3. Bắt đầu Milestone 3: `src/features/cart` + bảng `carts`/`cart_items` đã có sẵn trong migration.
+- [x] Dự án Supabase `khaisang` (ap-southeast-1) đã tạo, chạy 7 migration + dữ liệu mẫu; website đọc dữ liệu thật.
+1. Cấu hình Auth trên dashboard: Redirect URLs, SMTP (Brevo) để gửi email xác nhận cho mọi địa chỉ.
+2. Đăng ký tài khoản thật → cấp super_admin.
+3. Bắt đầu Milestone 3: giỏ hàng DB, coupon, PayOS.

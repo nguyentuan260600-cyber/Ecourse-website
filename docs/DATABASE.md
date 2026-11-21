@@ -1,7 +1,7 @@
 # Cơ sở dữ liệu
 
 PostgreSQL (Supabase). Khoá chính UUID; tiền tệ **BIGINT VND** (không dùng số thực). Mọi bảng bật RLS.
-Migration: `supabase/migrations/2026112100000{1..6}_*.sql`. Kiểm thử: `npm run test:db`.
+Migration: `supabase/migrations/2026112100000{1..7}_*.sql` (7 = đưa hàm trợ giúp RLS vào schema `private`, không gọi được qua API). Kiểm thử: `npm run test:db`.
 
 ## ERD (rút gọn)
 
@@ -53,10 +53,10 @@ erDiagram
 
 | Hàm | Mục đích |
 | --- | --- |
-| `has_role(code)`, `is_admin()`, `is_staff()` | Dùng trong RLS |
-| `is_course_instructor(course)` | Giảng viên chỉ sửa khoá được phân công |
-| `has_course_access(user, course)` | Grant còn hiệu lực, chưa hết hạn, chưa thu hồi |
-| `can_view_lesson(lesson)` | Bài học thử của khoá đã xuất bản, hoặc có quyền truy cập |
+| `private.has_role(code)`, `private.is_admin()`, `private.is_staff()` | Dùng trong RLS (schema `private`, không lộ qua API) |
+| `private.is_course_instructor(course)` | Giảng viên chỉ sửa khoá được phân công |
+| `private.has_course_access(user, course)` | Grant còn hiệu lực, chưa hết hạn, chưa thu hồi |
+| `private.can_view_lesson(lesson)` | Bài học thử của khoá đã xuất bản, hoặc có quyền truy cập |
 | `get_lesson_content(lesson)` | Trả nội dung/ID video chỉ khi `can_view_lesson` |
 | `verify_certificate(code)` | Xác thực chứng chỉ công khai, không lộ bảng |
 | `assign_role(user, role, grant)` | Chỉ super_admin; ghi `audit_logs` |
@@ -68,6 +68,6 @@ erDiagram
 - `quiz_options.is_correct`: thu hồi quyền SELECT cột; chấm điểm chạy phía server.
 - `instructor_profiles.status/slug`: giảng viên không tự sửa được.
 
-## Kiểm thử chính sách (19 ca, đều đạt)
+## Kiểm thử chính sách (20 ca, đều đạt)
 
 Khách thấy catalog nhưng không đọc được nội dung bài trả phí; học viên không đọc đơn hàng/quyền của người khác; không tự cấp quyền/role; không đọc đáp án; giảng viên không sửa khoá không được phân công; grant/enrollment trùng bị chặn; thu hồi quyền chặn nội dung; tổng tiền đơn phải khớp; audit log không sửa được.

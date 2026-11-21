@@ -116,7 +116,7 @@ create index audit_logs_entity_idx on public.audit_logs(entity_type, entity_id, 
 create index audit_logs_actor_idx on public.audit_logs(actor_id, created_at desc);
 
 create or replace function public.audit_logs_immutable()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = '' as $$
 begin
   raise exception 'audit_logs is append-only';
 end $$;

@@ -186,7 +186,7 @@ create table public.certificates (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   course_id uuid not null references public.courses(id) on delete restrict,
-  verification_code text not null unique default upper(encode(gen_random_bytes(6), 'hex')),
+  verification_code text not null unique default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12)),
   recipient_name_snapshot text not null,
   course_title_snapshot text not null,
   issued_at timestamptz not null default now(),

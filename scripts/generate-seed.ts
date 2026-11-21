@@ -47,6 +47,11 @@ fixtureCategories.forEach((c, n) =>
 );
 
 out.push("\n-- Courses, curriculum, tags");
+const sectionRows: string[] = [];
+const genericSections: string[] = []; // lessons that follow the "Bài s.l" pattern, expanded in SQL
+const explicitLessons: string[] = [];
+const tagRows: string[] = [];
+
 for (const c of fixtureCourses) {
   const d = buildFixtureDetail(c);
   const catId = fixtureCategories.find((x) => x.slug === c.category.slug)!.id;
@@ -54,18 +59,33 @@ for (const c of fixtureCourses) {
     `insert into public.courses (id, category_id, title, slug, short_description, description, thumbnail_url, price_vnd, compare_at_price_vnd, level, status, badge, objectives, requirements, includes, published_at) values (${id(c.id)}, ${id(catId)}, ${q(c.title)}, ${q(c.slug)}, ${q(c.shortDescription)}, ${q(d.description)}, ${q(c.thumbnailUrl)}, ${c.priceVnd}, ${c.compareAtPriceVnd ?? "null"}, ${q(c.level)}, 'published', ${q(c.badge)}, ${q(JSON.stringify(d.objectives))}::jsonb, ${arr(d.requirements)}, ${arr(d.includes)}, ${q(c.publishedAt)}::timestamptz) on conflict (slug) do nothing;`,
     `insert into public.course_instructors (course_id, instructor_id, is_primary) values (${id(c.id)}, ${id(c.instructor.id)}, true) on conflict do nothing;`,
   );
-  for (const t of c.tags) out.push(`insert into public.course_tags (course_id, tag) values (${id(c.id)}, ${q(t)}) on conflict do nothing;`);
+  for (const t of c.tags) tagRows.push(`(${q(c.id)},${q(t)})`);
   d.sections.forEach((s, si) => {
-    out.push(
-      `insert into public.course_sections (id, course_id, title, sort_order) values (${id(s.id)}, ${id(c.id)}, ${q(s.title)}, ${si}) on conflict (id) do nothing;`,
+    sectionRows.push(`(${q(s.id)},${q(c.id)},${q(s.title)},${si})`);
+    const n = s.lessons.length;
+    const dur = s.lessons[0]?.durationSeconds ?? 0;
+    const generic = s.lessons.every(
+      (l, li) =>
+        l.id === `${s.id}-l${li + 1}` &&
+        l.title === `Bài ${si + 1}.${li + 1}` &&
+        l.durationSeconds === dur &&
+        l.type === (li === n - 1 && si > 0 ? "quiz" : "video") &&
+        l.isPreview === (si === 0 && li === 0),
     );
-    s.lessons.forEach((l, li) =>
-      out.push(
-        `insert into public.lessons (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, sort_order) values (${id(l.id)}, ${id(s.id)}, ${q(l.title)}, ${q(`bai-${si + 1}-${li + 1}`)}, ${q(l.type)}, ${l.durationSeconds}, ${l.isPreview}, ${li}) on conflict (id) do nothing;`,
-      ),
-    );
+    if (generic) genericSections.push(`(${q(s.id)},${si + 1},${n},${dur})`);
+    else
+      s.lessons.forEach((l, li) =>
+        explicitLessons.push(`(${q(l.id)},${q(s.id)},${q(l.title)},${q(`bai-${si + 1}-${li + 1}`)},${q(l.type)},${l.durationSeconds},${l.isPreview},${li})`),
+      );
   });
 }
+
+out.push(
+  `insert into public.course_tags (course_id, tag) select md5('ks:' || v.c)::uuid, v.t from (values ${tagRows.join(",")}) v(c, t) on conflict do nothing;`,
+  `insert into public.course_sections (id, course_id, title, sort_order) select md5('ks:' || v.k)::uuid, md5('ks:' || v.c)::uuid, v.t, v.o from (values ${sectionRows.join(",")}) v(k, c, t, o) on conflict (id) do nothing;`,
+  `insert into public.lessons (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, sort_order) select md5('ks:' || v.k)::uuid, md5('ks:' || v.s)::uuid, v.t, v.sl, v.ty, v.d, v.p, v.o from (values ${explicitLessons.join(",")}) v(k, s, t, sl, ty, d, p, o) on conflict (id) do nothing;`,
+  `insert into public.lessons (id, section_id, title, slug, lesson_type, duration_seconds, is_preview, sort_order) select md5('ks:' || v.k || '-l' || g)::uuid, md5('ks:' || v.k)::uuid, 'Bài ' || v.si || '.' || g, 'bai-' || v.si || '-' || g, case when g = v.n and v.si > 1 then 'quiz' else 'video' end, v.d, (v.si = 1 and g = 1), g - 1 from (values ${genericSections.join(",")}) v(k, si, n, d) cross join lateral generate_series(1, v.n) g on conflict (id) do nothing;`,
+);
 
 out.push(`
 -- Sample coupon (dev)

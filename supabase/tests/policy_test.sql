@@ -199,3 +199,19 @@ do $$ declare roles text; begin
   if roles is distinct from 'student' then raise exception 'FAIL: new user roles = %', roles; end if;
   raise notice 'PASS: new users get only the student role';
 end $$;
+
+-- 14. RLS helpers are not exposed through the public API schema; trigger functions are not callable.
+select pg_temp.as_user(null);
+do $$ begin
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname in ('has_role','is_admin','is_staff','has_course_access','can_view_lesson','is_course_instructor')) then
+    raise exception 'FAIL: RLS helper still in public schema';
+  end if;
+  begin
+    perform public.handle_new_user();
+    raise exception 'FAIL: anon executed trigger function';
+  exception when insufficient_privilege or feature_not_supported or object_not_in_prerequisite_state then
+    raise notice 'PASS: RLS helpers hidden from the API and trigger functions not callable';
+  end;
+end $$;
+reset role;

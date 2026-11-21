@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:db": "node scripts/test-db.mjs",
     "db:seed:generate": "node --conditions=react-server scripts/generate-seed.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run test:db && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run test:db && npm run build",
+    "db:bundle": "node scripts/bundle-setup.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.8",

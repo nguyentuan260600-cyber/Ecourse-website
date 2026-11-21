@@ -7,11 +7,20 @@ const PROTECTED_PREFIXES = ["/dashboard", "/my-learning", "/learn", "/certificat
 /**
  * Refreshes the Supabase session cookie on every request and does an *optimistic*
  * redirect for signed-out users. Real authorization happens server-side in
- * `features/auth/guards.ts` and in Postgres RLS — never rely on this alone.
+ * `features/auth/session.ts` and in Postgres RLS — never rely on this alone.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!isSupabaseConfigured) return response;
+
+  // Supabase falls back to the Site URL root when a redirect URL is not allow-listed:
+  // hand such email links (?code= / ?token_hash=) to the confirm route.
+  const sp = request.nextUrl.searchParams;
+  if (request.nextUrl.pathname === "/" && (sp.has("code") || sp.has("token_hash"))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/confirm";
+    return NextResponse.redirect(url);
+  }
 
   const supabase = createServerClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
     cookies: {

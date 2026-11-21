@@ -19,8 +19,8 @@ duyệt khoá học, tìm kiếm, lọc, xem chi tiết và giỏ hàng đều h
 ## Chạy với Supabase
 
 1. Tạo dự án Supabase, sao chép `.env.example` → `.env.local` và điền `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-2. Chạy migration: `supabase link --project-ref <ref>` rồi `supabase db push` (thư mục `supabase/migrations`).
-3. (Chỉ môi trường dev) nạp dữ liệu mẫu: chạy `supabase/seed.sql` trong SQL editor hoặc `supabase db reset` khi dùng local.
+2. Tạo CSDL: mở **SQL Editor** của dự án mới, dán toàn bộ `supabase/setup.sql` (migration + dữ liệu mẫu dev) rồi Run.
+   Production: `npm run db:bundle -- --no-seed` rồi dùng `supabase/setup.production.sql`. Hoặc dùng Supabase CLI `supabase db push`.
 4. Trong Supabase Auth → URL Configuration: thêm `http://localhost:3000/auth/confirm` vào Redirect URLs.
    Trong Email Templates, dùng liên kết dạng `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard`
    (với "Reset password": `type=recovery`).
